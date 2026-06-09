@@ -1,4 +1,5 @@
 import pdfplumber
+from sentence_transformers import SentenceTransformer
 
 def getChunks(text):
     chunks = []
@@ -14,6 +15,8 @@ def getChunks(text):
         chunks.append(current_chunk)
     return chunks
 
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
 with pdfplumber.open("./pdf.pdf") as pdf:
     full_text = ""
     for index, page in enumerate(pdf.pages):
@@ -22,5 +25,11 @@ with pdfplumber.open("./pdf.pdf") as pdf:
             print("Warning No  text found")
             continue
         full_text += text + "\n"
-    texts = getChunks(full_text)
-    print(texts)
+
+texts = getChunks(full_text)
+
+embeddings = model.encode(texts)
+print(f"Number of chunks: {len(texts)}")
+print(f"Embeddings shape: {embeddings.shape}")
+print(f"First embedding (first 5 numbers): {embeddings[0][:5]}")
+print(embeddings)
