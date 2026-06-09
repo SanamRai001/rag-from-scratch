@@ -18,8 +18,9 @@ with pdfplumber.open("./pdf.pdf") as pdf:
     full_text = ""
     for index, page in enumerate(pdf.pages):
         text = page.extract_text()
-        full_text += text + "\n"
         if not text:
             print("Warning No  text found")
+            continue
+        full_text += text + "\n"
     texts = getChunks(full_text)
     print(texts)
