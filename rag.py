@@ -1,6 +1,13 @@
 import pdfplumber
 from sentence_transformers import SentenceTransformer
 import chromadb
+import os
+from dotenv import load_dotenv
+from google import genai
+
+load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
+client_ai = genai.Client()
 
 client = chromadb.PersistentClient(path="./my_chorma_db")
 collection = client.get_or_create_collection(name="knowledge_base")
@@ -55,4 +62,23 @@ results = collection.query(
     n_results=2
 )
 
-print(results['documents'])
+retrieved_chunks = results['documents'][0]
+context = "\n\n".join(retrieved_chunks)
+
+prompt = f"""
+You are a helpful assistant. Use the following pieces of context extracted from a PDF to answer the user's question accurately. 
+If you do not know the answer based on the context, say "I cannot find that information in the document."
+
+--- CONTEXT ---
+{context}
+
+--- QUESTION ---
+{query_text}
+
+--- ANSWER ---
+"""
+response = client_ai.models.generate_content(
+    model="gemini-2.5-flash",
+    contents=prompt
+)
+print(response.text)
